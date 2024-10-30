@@ -1,5 +1,5 @@
 .mod-menu {
-    display: flex;
+    display: none;
     position: absolute;
     top: 0;
     right: 0;
@@ -10,6 +10,10 @@
     justify-content: center;
     padding: space($page-margin);
     background-color: $color-modal-overlay;
+
+    &--open {
+        display: flex;
+    }
 
     &__modal-wrapper {
         display: flex;
@@ -83,5 +87,28 @@
         height: 100%;
         border-bottom-right-radius: $border-radius-modal;
         background-color: $color-bg-overlay;
+    }
+}
+
+.mod-menu-mod {
+    display: flex;
+    position: relative;
+    flex: 1 1 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: auto;
+    padding: space(16);
+    border-bottom-width: $border-width-thickness;
+    border-color: $color-border;
+    background-color: $color-bg-overlay;
+
+    &:last-child {
+        border-bottom-width: 0;
+    }
+
+    &__label {
+        @extend %label-lg;
     }
 }

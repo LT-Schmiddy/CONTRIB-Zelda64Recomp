@@ -1,4 +1,5 @@
 #include "recomp_ui.h"
+#include "ui_elements.h"
 #include "zelda_config.h"
 #include "librecomp/game.hpp"
 #include "ultramodern/ultramodern.hpp"
@@ -85,6 +86,18 @@ public:
 			[](const std::string& param, Rml::Event& event) {
                 recompui::set_current_menu(recompui::Menu::Config);
 				recompui::set_config_submenu(recompui::ConfigSubmenu::Controls);
+			}
+		);
+		recompui::register_event(listener, "open_mod_menu",
+			[](const std::string& param, Rml::Event& event) {
+				auto el = event.GetCurrentElement();
+				if (el != nullptr) {
+					auto doc = el->GetOwnerDocument();
+					auto mod_menu = recompui::get_mod_menu(doc);
+					if (mod_menu != nullptr) {
+						mod_menu->open_menu();
+					}
+				}
 			}
 		);
         recompui::register_event(listener, "open_settings",
