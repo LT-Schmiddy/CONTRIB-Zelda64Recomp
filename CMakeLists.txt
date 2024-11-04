@@ -344,6 +344,14 @@ if (APPLE)
     # Copy required frameworks to bundle
     target_link_libraries(Zelda64Recompiled PRIVATE ${MOLTENVK_PATH} ${VULKAN_LOADER_PATH})
 
+    # Define the path to the entitlements file
+    set(ENTITLEMENTS_FILE ${CMAKE_SOURCE_DIR}/.github/macos/entitlements.plist)
+
+    # Ensure the entitlements file exists
+    if(NOT EXISTS ${ENTITLEMENTS_FILE})
+        message(FATAL_ERROR "Entitlements file not found at ${ENTITLEMENTS_FILE}")
+    endif()
+
     # Post-build steps for macOS bundle
     add_custom_command(TARGET Zelda64Recompiled POST_BUILD
         # Copy and fix frameworks first
@@ -369,11 +377,8 @@ if (APPLE)
         COMMAND ${CMAKE_COMMAND} -E echo "Applying JIT compilation workaround"
         COMMAND /bin/bash -c "printf '\\x07' | dd of=$<TARGET_FILE:Zelda64Recompiled> bs=1 seek=160 count=1 conv=notrunc"
 
-        # Sign frameworks first
-        COMMAND /bin/bash -c "for f in $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Frameworks/*; do codesign --force --sign - \"$f\"; done"
-
-        # Finally sign the whole bundle with runtime option
-        COMMAND codesign --deep --force --sign - --options runtime $<TARGET_BUNDLE_DIR:Zelda64Recompiled>
+        # Finally sign the whole bundle with runtime option and entitlements
+        COMMAND codesign --deep --force --sign - --entitlements ${ENTITLEMENTS_FILE} $<TARGET_BUNDLE_DIR:Zelda64Recompiled>
 
         COMMENT "Performing post-build steps for macOS bundle"
         VERBATIM
