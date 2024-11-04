@@ -342,46 +342,40 @@ if (APPLE)
 
     # Copy required frameworks to bundle
     target_link_libraries(Zelda64Recompiled PRIVATE ${MOLTENVK_PATH} ${VULKAN_LOADER_PATH})
-    add_custom_command(TARGET Zelda64Recompiled POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/.github/macos/fixup_bundle.cmake
-    )
 
-    # Copy assets folder to the MacOS folder of the app bundle
-    set(TEMP_ASSETS_DIR "${CMAKE_BINARY_DIR}/temp_assets")
+    # Post-build steps for macOS bundle
     add_custom_command(TARGET Zelda64Recompiled POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets ${TEMP_ASSETS_DIR}
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${TEMP_ASSETS_DIR}/scss
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${TEMP_ASSETS_DIR} $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/assets
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${TEMP_ASSETS_DIR}
-    )
+        # 1. Copy and fix frameworks first
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/.github/macos/fixup_bundle.cmake
 
-    # Copy ICD files to macOS Resources folder
-    add_custom_command(TARGET Zelda64Recompiled POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/vulkan/icd.d
-            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/.github/macOS/MoltenVK_icd.json $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/vulkan/icd.d/
-    )
+        # 2. Copy all resources
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/temp_assets
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/temp_assets/scss
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/temp_assets $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/assets
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/temp_assets
 
-    # Copy controller db file to macOS Resources folder
-    add_custom_command(TARGET Zelda64Recompiled POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/gamecontrollerdb.txt $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/
-    )
+        # 3. Copy Vulkan ICD files
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/vulkan/icd.d
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/.github/macOS/MoltenVK_icd.json $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/vulkan/icd.d/
 
-    # Use install_name_tool to set the RPATH after the build
-    add_custom_command(TARGET Zelda64Recompiled POST_BUILD
-            COMMAND install_name_tool -add_rpath "@executable_path/../Frameworks/" $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/MacOS/Zelda64Recompiled
-    )
+        # 4. Copy controller database
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/gamecontrollerdb.txt $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/
 
-    # Apply JIT compilation workaround
-    add_custom_command(TARGET Zelda64Recompiled POST_BUILD
+        # 5. Set RPATH
+        COMMAND install_name_tool -add_rpath "@executable_path/../Frameworks/" $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/MacOS/Zelda64Recompiled
+
+        # 6. Apply JIT workaround
         COMMAND ${CMAKE_COMMAND} -E echo "Applying JIT compilation workaround"
         COMMAND /bin/bash -c "printf '\\x07' | dd of=$<TARGET_FILE:Zelda64Recompiled> bs=1 seek=160 count=1 conv=notrunc"
-        VERBATIM
-    )
 
-    # Code sign the app bundle with ad-hoc identity
-    add_custom_command(TARGET Zelda64Recompiled POST_BUILD
-            COMMAND codesign --deep --force --sign - $<TARGET_BUNDLE_DIR:Zelda64Recompiled>
-            COMMENT "Code signing the app bundle with ad-hoc identity"
+        # 7. Sign frameworks first
+        COMMAND codesign --force --sign - $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Frameworks/*
+
+        # 8. Finally sign the whole bundle with runtime option
+        COMMAND codesign --deep --force --sign - --options runtime $<TARGET_BUNDLE_DIR:Zelda64Recompiled>
+
+        COMMENT "Performing post-build steps for macOS bundle"
+        VERBATIM
     )
 endif()
 
@@ -428,7 +422,7 @@ endif()
 target_link_libraries(Zelda64Recompiled PRIVATE
     PatchesLib
     RecompiledFuncs
-    SDL2
+    SDL2::SDL2
     librecomp
     ultramodern
     rt64
