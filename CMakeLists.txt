@@ -275,6 +275,7 @@ if (WIN32)
     )
 
     target_sources(Zelda64Recompiled PRIVATE ${CMAKE_SOURCE_DIR}/icons/app.rc)
+    target_link_libraries(Zelda64Recompiled PRIVATE SDL2)
 endif()
 
 if (APPLE)
@@ -285,7 +286,7 @@ if (APPLE)
     set(THREADS_PREFER_PTHREAD_FLAG TRUE)
     find_package(Threads REQUIRED)
 
-    target_link_libraries(Zelda64Recompiled PRIVATE ${CMAKE_DL_LIBS} Threads::Threads)
+    target_link_libraries(Zelda64Recompiled PRIVATE ${CMAKE_DL_LIBS} Threads::Threads SDL2::SDL2)
 
     # Set bundle properties
     set_target_properties(Zelda64Recompiled PROPERTIES
@@ -345,33 +346,33 @@ if (APPLE)
 
     # Post-build steps for macOS bundle
     add_custom_command(TARGET Zelda64Recompiled POST_BUILD
-        # 1. Copy and fix frameworks first
+        # Copy and fix frameworks first
         COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/.github/macos/fixup_bundle.cmake
 
-        # 2. Copy all resources
+        # Copy all resources
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/temp_assets
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/temp_assets/scss
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/temp_assets $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/assets
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/temp_assets
 
-        # 3. Copy Vulkan ICD files
+        # Copy Vulkan ICD files
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/vulkan/icd.d
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/.github/macOS/MoltenVK_icd.json $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/vulkan/icd.d/
 
-        # 4. Copy controller database
+        # Copy controller database
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/gamecontrollerdb.txt $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/
 
-        # 5. Set RPATH
+        # Set RPATH
         COMMAND install_name_tool -add_rpath "@executable_path/../Frameworks/" $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/MacOS/Zelda64Recompiled
 
-        # 6. Apply JIT workaround
+        # Apply JIT workaround
         COMMAND ${CMAKE_COMMAND} -E echo "Applying JIT compilation workaround"
         COMMAND /bin/bash -c "printf '\\x07' | dd of=$<TARGET_FILE:Zelda64Recompiled> bs=1 seek=160 count=1 conv=notrunc"
 
-        # 7. Sign frameworks first
-        COMMAND codesign --force --sign - $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Frameworks/*
+        # Sign frameworks first
+        COMMAND /bin/bash -c "for f in $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Frameworks/*; do codesign --force --sign - \"$f\"; done"
 
-        # 8. Finally sign the whole bundle with runtime option
+        # Finally sign the whole bundle with runtime option
         COMMAND codesign --deep --force --sign - --options runtime $<TARGET_BUNDLE_DIR:Zelda64Recompiled>
 
         COMMENT "Performing post-build steps for macOS bundle"
@@ -410,7 +411,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     message(STATUS "FREETYPE_LIBRARIES = ${FREETYPE_LIBRARIES}")
 
     include_directories(${FREETYPE_LIBRARIES})
-    target_link_libraries(Zelda64Recompiled PRIVATE ${FREETYPE_LIBRARIES})
+    target_link_libraries(Zelda64Recompiled PRIVATE ${FREETYPE_LIBRARIES} SDL2::SDL2)
 
     set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
     set(THREADS_PREFER_PTHREAD_FLAG TRUE)
@@ -422,7 +423,6 @@ endif()
 target_link_libraries(Zelda64Recompiled PRIVATE
     PatchesLib
     RecompiledFuncs
-    SDL2::SDL2
     librecomp
     ultramodern
     rt64
