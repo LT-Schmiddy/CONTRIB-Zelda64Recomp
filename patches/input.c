@@ -6,6 +6,9 @@
 #include "z64voice.h"
 #include "audiothread_cmd.h"
 
+//Input* sPlayerControlInput
+void func_8083EA44(Player* this, f32 arg1);
+
 s32 func_80847190(PlayState* play, Player* this, s32 arg2);
 s16 func_80832754(Player* this, s32 arg1);
 s32 func_8082EF20(Player* this);
@@ -129,6 +132,37 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
 
         this->actor.focus.rot.y = CLAMP(var_s0, -0x4AAA, 0x4AAA) + this->actor.shape.rot.y;
     }
+
+//    // Handle First Person Movement
+//{ 
+    f32 movementSpeed = 8.25f; // account for form
+    if (this->currentMask == PLAYER_MASK_BUNNY) {
+        movementSpeed *= 1.5f;
+    }
+
+    //f32 relX = (sPlayerControlInput->rel.stick_x / 10);
+    //f32 relY = (sPlayerControlInput->rel.stick_y / 10);
+    f32 relX = (play->state.input[0].rel.stick_x / 10);
+    f32 relY = (play->state.input[0].rel.stick_y / 10);
+
+    // Normalize so that diagonal movement isn't faster
+    f32 relMag = sqrtf((relX * relX) + (relY * relY));
+    if (relMag > 1.0f) {
+        relX /= relMag;
+        relY /= relMag;
+    }
+
+    // Determine what left and right mean based on camera angle
+    f32 relX2 = relX * Math_CosS(this->actor.focus.rot.y) + relY * Math_SinS(this->actor.focus.rot.y);
+    f32 relY2 = relY * Math_CosS(this->actor.focus.rot.y) - relX * Math_SinS(this->actor.focus.rot.y);
+
+    // Calculate distance for footstep sound
+    f32 distance = sqrtf((relX2 * relX2) + (relY2 * relY2)) * movementSpeed;
+    func_8083EA44(this, distance / 4.5f);
+
+    this->actor.world.pos.x += (relX2 * movementSpeed) + this->actor.colChkInfo.displacement.x;
+    this->actor.world.pos.z += (relY2 * movementSpeed) + this->actor.colChkInfo.displacement.z;
+    //}
 
     this->unk_AA6 |= 2;
 
