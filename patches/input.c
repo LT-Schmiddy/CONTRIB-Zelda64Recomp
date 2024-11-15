@@ -1,6 +1,7 @@
 #include "patches.h"
 #include "input.h"
 #include "z64snap.h"
+#include "z64save.h"
 // Decomp rename, TODO update decomp and remove this
 #define AudioVoice_GetWord func_801A5100
 #include "z64voice.h"
@@ -13,8 +14,45 @@ s32 func_80847190(PlayState* play, Player* this, s32 arg2);
 s16 func_80832754(Player* this, s32 arg1);
 s32 func_8082EF20(Player* this);
 
+bool recomp_first_person_movement_allowed(PlayState* play, Player* this, bool in_free_look) {
+    return play->unk_1887C == 0 && (in_free_look || this->currentMask != PLAYER_MASK_ZORA);
+}
+
+void recomp_handle_first_person_movement(PlayState* play, Player* this, s32 arg2) {
+
+    f32 movementSpeed = 8.25f; // account for form
+    if (this->currentMask == PLAYER_MASK_BUNNY) {
+        movementSpeed *= 1.5f;
+    }
+
+    //f32 relX = (sPlayerControlInput->rel.stick_x / 10);
+    //f32 relY = (sPlayerControlInput->rel.stick_y / 10);
+    f32 relX = -(play->state.input[0].rel.stick_x / 10);
+    f32 relY = (play->state.input[0].rel.stick_y / 10);
+
+    // Normalize so that diagonal movement isn't faster
+    f32 relMag = sqrtf((relX * relX) + (relY * relY));
+    if (relMag > 1.0f) {
+        relX /= relMag;
+        relY /= relMag;
+    }
+
+    // Determine what left and right mean based on camera angle
+    f32 relX2 = relX * Math_CosS(this->actor.focus.rot.y) + relY * Math_SinS(this->actor.focus.rot.y);
+    f32 relY2 = relY * Math_CosS(this->actor.focus.rot.y) - relX * Math_SinS(this->actor.focus.rot.y);
+
+    // Calculate distance for footstep sound
+    f32 distance = sqrtf((relX2 * relX2) + (relY2 * relY2)) * movementSpeed;
+    func_8083EA44(this, distance / 4.5f);
+
+    this->actor.world.pos.x += (relX2 * movementSpeed) + this->actor.colChkInfo.displacement.x;
+    this->actor.world.pos.z += (relY2 * movementSpeed) + this->actor.colChkInfo.displacement.z;
+}
+
 // @recomp Patched to add gyro and mouse aiming.
 RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
+    bool first_person_movement_allowed = false;
+
     s32 pad;
     s16 var_s0;
     // @recomp Get the aiming camera inversion state.
@@ -39,8 +77,15 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
     //     analog_x, analog_y);
 
     if (!func_800B7128(this) && !func_8082EF20(this) && !arg2) {
+        first_person_movement_allowed = recomp_first_person_movement_allowed(play, this, true);
+
         // @recomp Add in the analog camera Y input. Clamp to prevent moving the camera twice as fast if both sticks are held.
-        var_s0 = CLAMP(play->state.input[0].rel.stick_y + analog_y, -61, 61) * 0xF0;
+        if (first_person_movement_allowed) {
+            var_s0 = CLAMP(analog_y, -61, 61) * 0xF0;
+        }
+        else {
+            var_s0 = CLAMP(play->state.input[0].rel.stick_x + analog_x, -61, 61) * -0x10;
+        }
         
         // @recomp Invert the Y axis accordingly (default is inverted, so negate if not inverted).
         if (!inverted_y) {
@@ -49,8 +94,12 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
         Math_SmoothStepToS(&this->actor.focus.rot.x, var_s0, 0xE, 0xFA0, 0x1E);
 
         // @recomp Add in the analog camera X input. Clamp to prevent moving the camera twice as fast if both sticks are held.
-        var_s0 = CLAMP(play->state.input[0].rel.stick_x + analog_x, -61, 61) * -0x10;
-
+        if (first_person_movement_allowed) {
+            var_s0 = CLAMP(analog_x, -61, 61) * -0x10;
+        }
+        else {
+            var_s0 = CLAMP(play->state.input[0].rel.stick_x + analog_x, -61, 61) * -0x10;
+        }
         // @recomp Invert the X axis accordingly
         if (inverted_x) {
             var_s0 = -var_s0;
@@ -59,6 +108,8 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
         this->actor.focus.rot.y += var_s0;
     }
     else {
+        first_person_movement_allowed = recomp_first_person_movement_allowed(play, this, false);
+
         static float total_gyro_x, total_gyro_y;
         static float total_mouse_x, total_mouse_y;
         static float filtered_gyro_x, filtered_gyro_y;
@@ -100,7 +151,15 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
 
         // @recomp Invert the Y axis accordingly (default is inverted, so negate if not inverted).
         // Also add in the analog camera Y input. Clamp to prevent moving the camera twice as fast if both sticks are held.
-        s32 stick_y = CLAMP(play->state.input[0].rel.stick_y + analog_y, -61, 61);
+        //s32 stick_y = CLAMP(play->state.input[0].rel.stick_y + analog_y, -61, 61);
+        s32 stick_y;
+        if (first_person_movement_allowed) {
+            stick_y = CLAMP(analog_y, -61, 61);
+        }
+        else {
+            stick_y = CLAMP(play->state.input[0].rel.stick_y + analog_y, -61, 61);
+        }
+
         if (!inverted_y) {
             stick_y = -stick_y;
         }
@@ -121,7 +180,14 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
 
         // @recomp Invert the X axis accordingly. Also add in the analog camera Y input.
         // Clamp to prevent moving the camera twice as fast if both sticks are held.
-        s32 stick_x = CLAMP(play->state.input[0].rel.stick_x + analog_x, -61, 61);
+        s32 stick_x;
+        if (first_person_movement_allowed) {
+            stick_x = CLAMP(analog_x, -61, 61);
+        }
+        else {
+            stick_x = CLAMP(play->state.input[0].rel.stick_x + analog_x, -61, 61);
+        }
+
         if (inverted_x) {
             stick_x = -stick_x;
         }
@@ -132,37 +198,10 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
 
         this->actor.focus.rot.y = CLAMP(var_s0, -0x4AAA, 0x4AAA) + this->actor.shape.rot.y;
     }
-
-//    // Handle First Person Movement
-//{ 
-    f32 movementSpeed = 8.25f; // account for form
-    if (this->currentMask == PLAYER_MASK_BUNNY) {
-        movementSpeed *= 1.5f;
+    
+    if (first_person_movement_allowed) {
+        recomp_handle_first_person_movement(play, this, arg2);
     }
-
-    //f32 relX = (sPlayerControlInput->rel.stick_x / 10);
-    //f32 relY = (sPlayerControlInput->rel.stick_y / 10);
-    f32 relX = (play->state.input[0].rel.stick_x / 10);
-    f32 relY = (play->state.input[0].rel.stick_y / 10);
-
-    // Normalize so that diagonal movement isn't faster
-    f32 relMag = sqrtf((relX * relX) + (relY * relY));
-    if (relMag > 1.0f) {
-        relX /= relMag;
-        relY /= relMag;
-    }
-
-    // Determine what left and right mean based on camera angle
-    f32 relX2 = relX * Math_CosS(this->actor.focus.rot.y) + relY * Math_SinS(this->actor.focus.rot.y);
-    f32 relY2 = relY * Math_CosS(this->actor.focus.rot.y) - relX * Math_SinS(this->actor.focus.rot.y);
-
-    // Calculate distance for footstep sound
-    f32 distance = sqrtf((relX2 * relX2) + (relY2 * relY2)) * movementSpeed;
-    func_8083EA44(this, distance / 4.5f);
-
-    this->actor.world.pos.x += (relX2 * movementSpeed) + this->actor.colChkInfo.displacement.x;
-    this->actor.world.pos.z += (relY2 * movementSpeed) + this->actor.colChkInfo.displacement.z;
-    //}
 
     this->unk_AA6 |= 2;
 
