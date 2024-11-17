@@ -132,7 +132,12 @@ extern "C" void recomp_get_analog_inverted_axes(uint8_t* rdram, recomp_context* 
 }
 
 extern "C" void recomp_analog_cam_enabled(uint8_t* rdram, recomp_context* ctx) {
-    _return<s32>(ctx, zelda64::get_analog_cam_mode() == zelda64::AnalogCamMode::On);
+    _return<s32>(ctx, zelda64::get_analog_cam_mode() == zelda64::AnalogCamMode::On 
+        || zelda64::get_analog_cam_mode() == zelda64::AnalogCamMode::MoveInFirstPerson);
+}
+
+extern "C" void recomp_move_in_first_person_enabled(uint8_t* rdram, recomp_context* ctx) {
+    _return<s32>(ctx, zelda64::get_analog_cam_mode() == zelda64::AnalogCamMode::MoveInFirstPerson);
 }
 
 extern "C" void recomp_get_camera_inputs(uint8_t* rdram, recomp_context* ctx) {

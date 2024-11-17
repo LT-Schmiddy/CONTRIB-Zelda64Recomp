@@ -15,7 +15,13 @@ s16 func_80832754(Player* this, s32 arg1);
 s32 func_8082EF20(Player* this);
 
 bool recomp_first_person_movement_allowed(PlayState* play, Player* this, bool in_free_look) {
-    return play->unk_1887C == 0 && (in_free_look || this->currentMask != PLAYER_MASK_ZORA);
+    return recomp_move_in_first_person_enabled()
+    //return recomp_analog_cam_enabled()
+        && play->unk_1887C == 0 
+        && (
+            in_free_look 
+            || this->currentMask != PLAYER_MASK_ZORA
+        );
 }
 
 void recomp_handle_first_person_movement(PlayState* play, Player* this, s32 arg2) {

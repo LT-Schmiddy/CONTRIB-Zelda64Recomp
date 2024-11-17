@@ -73,11 +73,13 @@ namespace zelda64 {
     enum class AnalogCamMode {
         On,
         Off,
+        MoveInFirstPerson,
 		OptionCount
     };
 
     NLOHMANN_JSON_SERIALIZE_ENUM(zelda64::AnalogCamMode, {
         {zelda64::AnalogCamMode::On, "On"},
+        {zelda64::AnalogCamMode::MoveInFirstPerson, "MoveInFirstPerson"},
         {zelda64::AnalogCamMode::Off, "Off"}
     });
 
