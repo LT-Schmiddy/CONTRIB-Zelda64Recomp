@@ -248,6 +248,18 @@
                                 data-event-focus="set_cur_config_index(8)"
                                 name="analog_cam_mode"
                                 data-checked="analog_cam_mode"
+                                value="MoveInFirstPerson"
+                                id="analog_cam_fpm"
+                                style="nav-up: #camera_inversion_x; nav-down: #analog_camera_inversion_x"
+                            />
+                          <label class="config-option__tab-label" for="analog_cam_fpm">On - Move In First Person</label>
+                          
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(8)"
+                                name="analog_cam_mode"
+                                data-checked="analog_cam_mode"
                                 value="Off"
                                 id="analog_cam_disabled"
                                 style="nav-up: #camera_inversion_x; nav-down: #analog_camera_inversion_x"
