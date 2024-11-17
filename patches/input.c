@@ -17,7 +17,8 @@ s32 func_8082EF20(Player* this);
 bool recomp_first_person_movement_allowed(PlayState* play, Player* this, bool in_free_look) {
     return recomp_move_in_first_person_enabled()
     //return recomp_analog_cam_enabled()
-        && play->unk_1887C == 0 
+        && play->unk_1887C == 0 // Prevents movement in shooting gallery.
+        && this->rideActor == NULL // Prevents movement on horseback.
         && (
             in_free_look 
             || this->currentMask != PLAYER_MASK_ZORA
