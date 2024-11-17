@@ -27,7 +27,7 @@ bool recomp_first_person_movement_allowed(PlayState* play, Player* this, bool in
 
 void recomp_handle_first_person_movement(PlayState* play, Player* this, s32 arg2) {
 
-    f32 movementSpeed = 8.25f; // account for form
+    f32 movementSpeed = 8.25f; // account for mask
     if (this->currentMask == PLAYER_MASK_BUNNY) {
         movementSpeed *= 1.5f;
     }
@@ -50,6 +50,10 @@ void recomp_handle_first_person_movement(PlayState* play, Player* this, s32 arg2
 
     // Calculate distance for footstep sound
     f32 distance = sqrtf((relX2 * relX2) + (relY2 * relY2)) * movementSpeed;
+    if (this->currentMask == PLAYER_MASK_DEKU) {
+        distance *= 2.0f;
+    }
+
     func_8083EA44(this, distance / 4.5f);
 
     this->actor.world.pos.x += (relX2 * movementSpeed) + this->actor.colChkInfo.displacement.x;
