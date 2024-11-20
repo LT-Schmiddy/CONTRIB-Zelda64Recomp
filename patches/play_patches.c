@@ -1,6 +1,10 @@
 #include "play_patches.h"
 #include "z64debug_display.h"
 #include "input.h"
+#include "input.h"
+
+#include "z64game.h"
+#include "overlays/gamestates/ovl_title/z_title.h"
 
 extern Input D_801F6C18;
 
@@ -8,10 +12,19 @@ void controls_play_update(PlayState* play) {
     gSaveContext.options.zTargetSetting = recomp_get_targeting_mode();
 }
 
+void do_reset_game(PlayState* this) {
+    STOP_GAMESTATE(&this->state);
+    SET_NEXT_GAMESTATE(&this->state, ConsoleLogo_Init, sizeof(ConsoleLogoState));
+}
+
 // @recomp Patched to add hooks for various added functionality.
 RECOMP_PATCH void Play_Main(GameState* thisx) {
     static Input* prevInput = NULL;
     PlayState* this = (PlayState*)thisx;
+
+    if (recomp_should_reset_game()) {
+        do_reset_game(this);
+    }
 
     // @recomp
     debug_play_update(this);
