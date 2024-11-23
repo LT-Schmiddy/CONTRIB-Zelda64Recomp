@@ -6,24 +6,35 @@
 #include "z64voice.h"
 #include "audiothread_cmd.h"
 
-RECOMP_DECLARE_EVENT(recomp_before_first_person_aiming_update(PlayState* play, Player* this, bool in_free_look, bool* disable_left_stick_aiming));
-RECOMP_DECLARE_EVENT(recomp_after_first_person_aiming_update(PlayState* play, Player* this, bool in_free_look));
+RECOMP_DECLARE_EVENT(recomp_before_first_person_aiming_update_event(PlayState* play, Player* this, bool in_free_look, RecompAimingOverideMode* recomp_aiming_override_mode));
+RECOMP_DECLARE_EVENT(recomp_after_first_person_aiming_update_event(PlayState* play, Player* this, bool in_free_look));
 
 s32 func_80847190(PlayState* play, Player* this, s32 arg2);
 s16 func_80832754(Player* this, s32 arg1);
 s32 func_8082EF20(Player* this);
 
+// This flag is reset every frame by 'poll_inputs()'.
+RecompAimingOverideMode recomp_aiming_override_mode = RECOMP_AIMINIG_OVERRIDE_OFF;
+
 // @recomp Patched to add gyro and mouse aiming.
 RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
     s32 pad;
     s16 var_s0;
+
+    // Checks if we're in free look (C-Up look around mode).
+    bool in_free_look = (!func_800B7128(this) && !func_8082EF20(this) && !arg2);
+
+    // Checking if any mods have disabled aiming with the left stick.
+    recomp_before_first_person_aiming_update_event(play, this, in_free_look, &recomp_aiming_override_mode);
+
     // @recomp Get the aiming camera inversion state.
     s32 inverted_x, inverted_y;
     recomp_get_inverted_axes(&inverted_x, &inverted_y);
-    // @recomp Get the analog camera input values if analog cam is enabled.
+
+    // @recomp Get the analog camera input values if analog cam is enabled, or right-stick aiming is being forced.
     s32 analog_x = 0;
     s32 analog_y = 0;
-    if (recomp_analog_cam_enabled()) {
+    if (recomp_analog_cam_enabled() || recomp_aiming_override_mode == RECOMP_AIMINIG_OVERRIDE_FORCE_RIGHT_STICK) {
         float analog_x_float = 0.0f;
         float analog_y_float = 0.0f;
         recomp_get_camera_inputs(&analog_x_float, &analog_y_float);
@@ -38,13 +49,9 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
     //     play->state.input[0].rel.stick_x, play->state.input[0].rel.stick_y,
     //     analog_x, analog_y);
 
-    if (!func_800B7128(this) && !func_8082EF20(this) && !arg2) {
-        // Checking if any mods have disabled aiming with the left stick.
-        int disable_left_stick_aiming = 0;
-        recomp_before_first_person_aiming_update(play, this, true, &disable_left_stick_aiming);
-
+    if (in_free_look) {
         // @recomp Add in the analog camera Y input. Clamp to prevent moving the camera twice as fast if both sticks are held.
-        if (disable_left_stick_aiming) {
+        if (recomp_aiming_override_mode != RECOMP_AIMINIG_OVERRIDE_OFF) {
             var_s0 = CLAMP(analog_y, -61, 61) * 0xF0;
         }
         else {
@@ -58,7 +65,7 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
         Math_SmoothStepToS(&this->actor.focus.rot.x, var_s0, 0xE, 0xFA0, 0x1E);
 
         // @recomp Add in the analog camera X input. Clamp to prevent moving the camera twice as fast if both sticks are held.
-        if (disable_left_stick_aiming) {
+        if (recomp_aiming_override_mode != RECOMP_AIMINIG_OVERRIDE_OFF) {
             var_s0 = CLAMP(analog_x, -61, 61) * -0x10;
         }
         else {
@@ -71,14 +78,8 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
         }
         var_s0 = CLAMP(var_s0, -0xBB8, 0xBB8);
         this->actor.focus.rot.y += var_s0;
-
-        recomp_after_first_person_aiming_update(play, this, true);
     }
     else {
-        // Checking if any mods have disabled aiming with the left stick.
-        int disable_left_stick_aiming = 0;
-        recomp_before_first_person_aiming_update(play, this, false, &disable_left_stick_aiming);
-
         static float total_gyro_x, total_gyro_y;
         static float total_mouse_x, total_mouse_y;
         static float filtered_gyro_x, filtered_gyro_y;
@@ -121,7 +122,7 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
         // @recomp Invert the Y axis accordingly (default is inverted, so negate if not inverted).
         // Also add in the analog camera Y input. Clamp to prevent moving the camera twice as fast if both sticks are held.
         s32 stick_y;
-        if (disable_left_stick_aiming) {
+        if (recomp_aiming_override_mode != RECOMP_AIMINIG_OVERRIDE_OFF) {
             stick_y = CLAMP(analog_y, -61, 61);
         }
         else {
@@ -149,7 +150,7 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
         // @recomp Invert the X axis accordingly. Also add in the analog camera Y input.
         // Clamp to prevent moving the camera twice as fast if both sticks are held.
         s32 stick_x;
-        if (disable_left_stick_aiming) {
+        if (recomp_aiming_override_mode != RECOMP_AIMINIG_OVERRIDE_OFF) {
             stick_x = CLAMP(analog_x, -61, 61);
         }
         else {
@@ -165,9 +166,9 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
         applied_aim_y = target_aim_y;
 
         this->actor.focus.rot.y = CLAMP(var_s0, -0x4AAA, 0x4AAA) + this->actor.shape.rot.y;
-
-        recomp_after_first_person_aiming_update(play, this, false);
     }
+
+    recomp_after_first_person_aiming_update_event(play, this, in_free_look);
 
     this->unk_AA6 |= 2;
 
