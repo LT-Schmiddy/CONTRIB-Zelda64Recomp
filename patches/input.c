@@ -14,7 +14,7 @@ s16 func_80832754(Player* this, s32 arg1);
 s32 func_8082EF20(Player* this);
 
 // This flag is reset every frame by 'poll_inputs()'.
-RecompAimingOverideMode recomp_aiming_override_mode = RECOMP_AIMINIG_OVERRIDE_OFF;
+RecompAimingOverideMode recomp_aiming_override_mode = RECOMP_AIMING_OVERRIDE_OFF;
 
 // @recomp Patched to add gyro and mouse aiming.
 RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
@@ -34,7 +34,7 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
     // @recomp Get the analog camera input values if analog cam is enabled, or right-stick aiming is being forced.
     s32 analog_x = 0;
     s32 analog_y = 0;
-    if (recomp_analog_cam_enabled() || recomp_aiming_override_mode == RECOMP_AIMINIG_OVERRIDE_FORCE_RIGHT_STICK) {
+    if (recomp_analog_cam_enabled() || recomp_aiming_override_mode == RECOMP_AIMING_OVERRIDE_FORCE_RIGHT_STICK) {
         float analog_x_float = 0.0f;
         float analog_y_float = 0.0f;
         recomp_get_camera_inputs(&analog_x_float, &analog_y_float);
@@ -51,12 +51,11 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
 
     if (in_free_look) {
         // @recomp Add in the analog camera Y input. Clamp to prevent moving the camera twice as fast if both sticks are held.
-        if (recomp_aiming_override_mode != RECOMP_AIMINIG_OVERRIDE_OFF) {
-            var_s0 = CLAMP(analog_y, -61, 61) * 0xF0;
+        s32 cam_input_y = analog_y;
+        if (recomp_aiming_override_mode == RECOMP_AIMING_OVERRIDE_OFF) {
+            cam_input_y += play->state.input[0].rel.stick_y;
         }
-        else {
-            var_s0 = CLAMP(play->state.input[0].rel.stick_y + analog_y, -61, 61) * 0xF0;
-        }
+        var_s0 = CLAMP(cam_input_y, -61, 61) * 0xF0;
         
         // @recomp Invert the Y axis accordingly (default is inverted, so negate if not inverted).
         if (!inverted_y) {
@@ -65,12 +64,11 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
         Math_SmoothStepToS(&this->actor.focus.rot.x, var_s0, 0xE, 0xFA0, 0x1E);
 
         // @recomp Add in the analog camera X input. Clamp to prevent moving the camera twice as fast if both sticks are held.
-        if (recomp_aiming_override_mode != RECOMP_AIMINIG_OVERRIDE_OFF) {
-            var_s0 = CLAMP(analog_x, -61, 61) * -0x10;
+        s32 cam_input_x = analog_x;
+        if (recomp_aiming_override_mode == RECOMP_AIMING_OVERRIDE_OFF) {
+            cam_input_x += play->state.input[0].rel.stick_x;
         }
-        else {
-            var_s0 = CLAMP(play->state.input[0].rel.stick_x + analog_x, -61, 61) * -0x10;
-        }
+        var_s0 = CLAMP(cam_input_x, -61, 61) * -0x10;
 
         // @recomp Invert the X axis accordingly
         if (inverted_x) {
@@ -121,13 +119,12 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
 
         // @recomp Invert the Y axis accordingly (default is inverted, so negate if not inverted).
         // Also add in the analog camera Y input. Clamp to prevent moving the camera twice as fast if both sticks are held.
+        s32 cam_input_y = analog_y;
+        if (recomp_aiming_override_mode == RECOMP_AIMING_OVERRIDE_OFF) {
+            cam_input_y += play->state.input[0].rel.stick_y;
+        }
         s32 stick_y;
-        if (recomp_aiming_override_mode != RECOMP_AIMINIG_OVERRIDE_OFF) {
-            stick_y = CLAMP(analog_y, -61, 61);
-        }
-        else {
-            stick_y = CLAMP(play->state.input[0].rel.stick_y + analog_y, -61, 61);
-        }
+        stick_y = CLAMP(cam_input_y, -61, 61);
 
         if (!inverted_y) {
             stick_y = -stick_y;
@@ -149,13 +146,12 @@ RECOMP_PATCH s32 func_80847190(PlayState* play, Player* this, s32 arg2) {
 
         // @recomp Invert the X axis accordingly. Also add in the analog camera Y input.
         // Clamp to prevent moving the camera twice as fast if both sticks are held.
+        s32 cam_input_x = analog_x;
+        if (recomp_aiming_override_mode == RECOMP_AIMING_OVERRIDE_OFF) {
+            cam_input_x += play->state.input[0].rel.stick_x;
+        }
         s32 stick_x;
-        if (recomp_aiming_override_mode != RECOMP_AIMINIG_OVERRIDE_OFF) {
-            stick_x = CLAMP(analog_x, -61, 61);
-        }
-        else {
-            stick_x = CLAMP(play->state.input[0].rel.stick_x + analog_x, -61, 61);
-        }
+        stick_x = CLAMP(cam_input_x, -61, 61);
 
         if (inverted_x) {
             stick_x = -stick_x;

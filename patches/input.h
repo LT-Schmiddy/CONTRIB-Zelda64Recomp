@@ -9,9 +9,9 @@ typedef enum {
 } RecompCameraMode;
 
 typedef enum {
-    RECOMP_AIMINIG_OVERRIDE_OFF = 0,
-    RECOMP_AIMINIG_OVERRIDE_DISABLE_LEFT_STICK = 1,
-    RECOMP_AIMINIG_OVERRIDE_FORCE_RIGHT_STICK = 2
+    RECOMP_AIMING_OVERRIDE_OFF = 0,
+    RECOMP_AIMING_OVERRIDE_DISABLE_LEFT_STICK = 1,
+    RECOMP_AIMING_OVERRIDE_FORCE_RIGHT_STICK = 2
 } RecompAimingOverideMode;
 
 extern RecompCameraMode recomp_camera_mode;
