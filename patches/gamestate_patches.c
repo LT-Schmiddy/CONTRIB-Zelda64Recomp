@@ -1,4 +1,4 @@
-#include "game_patches.h"
+#include "gamestate_patches.h"
 #include "global.h"
 #include "audiomgr.h"
 #include "idle.h"
