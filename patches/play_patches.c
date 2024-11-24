@@ -1,10 +1,7 @@
 #include "play_patches.h"
 #include "z64debug_display.h"
 #include "input.h"
-#include "input.h"
 
-#include "z64game.h"
-#include "overlays/gamestates/ovl_title/z_title.h"
 #include "prevent_bss_reordering.h"
 #include "z64.h"
 #include "regs.h"
