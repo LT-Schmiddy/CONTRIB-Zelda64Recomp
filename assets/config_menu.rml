@@ -73,7 +73,7 @@
 						</panel>
 					</tabset>
 					<div class="config__icon-buttons">
-            <button
+						<button
 							class="icon-button"
 							onclick="open_reset_game_prompt"
 							id="config__reset_game-button"

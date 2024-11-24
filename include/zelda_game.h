@@ -6,7 +6,7 @@ namespace zelda64 {
     //void quicksave_save();
     //void quicksave_load();
 
-    void enqueue_game_reset();
+    void trigger_game_reset();
 };
 
 #endif

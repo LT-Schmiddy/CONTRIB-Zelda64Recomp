@@ -287,7 +287,7 @@ void zelda64::open_reset_game_prompt() {
 		"Quit",
 		"Cancel",
 		[]() {
-			zelda64::enqueue_game_reset();
+			zelda64::trigger_game_reset();
 			close_config_menu();
 		},
 		[]() {},

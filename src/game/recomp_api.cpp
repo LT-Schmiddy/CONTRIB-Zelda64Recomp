@@ -17,7 +17,7 @@
 
 static std::atomic<uint8_t> should_game_reset = 0x00;
 
-void zelda64::enqueue_game_reset() {
+void zelda64::trigger_game_reset() {
     should_game_reset.store(0x01);
 }
 
