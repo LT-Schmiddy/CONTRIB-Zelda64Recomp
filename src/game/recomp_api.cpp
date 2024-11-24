@@ -166,3 +166,11 @@ extern "C" void recomp_set_right_analog_suppressed(uint8_t* rdram, recomp_contex
 
     recomp::set_right_analog_suppressed(suppressed);
 }
+
+
+extern "C" void recomp_should_reset_game(uint8_t* rdram, recomp_context* ctx) {
+    bool retVal = zelda64::should_game_reset;
+    zelda64::should_game_reset = false;
+
+    _return(ctx, retVal);
+}

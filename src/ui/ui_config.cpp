@@ -161,6 +161,11 @@ static bool sample_positions_supported = false;
 
 static bool cont_active = true;
 
+namespace zelda64 {
+	bool should_game_reset;
+}
+
+
 static recomp::InputDevice cur_device = recomp::InputDevice::Controller;
 
 int recomp::get_scanned_input_index() {
@@ -274,6 +279,23 @@ void zelda64::open_quit_game_prompt() {
 		[]() {},
         recompui::ButtonVariant::Error,
         recompui::ButtonVariant::Tertiary,
+		true,
+		"config__quit-game-button"
+	);
+}
+
+void zelda64::open_reset_game_prompt() {
+	prompt_context.open_prompt(
+		"Return to the main menu?",
+		"Any progress since your last save will be lost.",
+		"Quit",
+		"Cancel",
+		[]() {
+			should_game_reset = true;
+		},
+		[]() {},
+		recompui::ButtonVariant::Error,
+		recompui::ButtonVariant::Tertiary,
 		true,
 		"config__quit-game-button"
 	);
@@ -557,6 +579,11 @@ public:
 		recompui::register_event(listener, "open_quit_game_prompt",
 			[](const std::string& param, Rml::Event& event) {
                 zelda64::open_quit_game_prompt();
+			});
+
+		recompui::register_event(listener, "open_reset_game_prompt",
+			[](const std::string& param, Rml::Event& event) {
+				zelda64::open_reset_game_prompt();
 			});
 
 		recompui::register_event(listener, "toggle_input_device",

@@ -88,6 +88,9 @@ namespace zelda64 {
     void set_analog_cam_mode(AnalogCamMode mode);
 
     void open_quit_game_prompt();
+    void open_reset_game_prompt();
+
+    extern bool should_game_reset;
 };
 
 #endif
