@@ -165,7 +165,6 @@ namespace zelda64 {
 	bool should_game_reset;
 }
 
-
 static recomp::InputDevice cur_device = recomp::InputDevice::Controller;
 
 int recomp::get_scanned_input_index() {
@@ -292,12 +291,13 @@ void zelda64::open_reset_game_prompt() {
 		"Cancel",
 		[]() {
 			should_game_reset = true;
+			close_config_menu();
 		},
 		[]() {},
 		recompui::ButtonVariant::Error,
 		recompui::ButtonVariant::Tertiary,
 		true,
-		"config__quit-game-button"
+		"config__reset_game-button"
 	);
 }
 

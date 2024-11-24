@@ -40,9 +40,13 @@ void controls_play_update(PlayState* play) {
     gSaveContext.options.zTargetSetting = recomp_get_targeting_mode();
 }
 
-void do_reset_game(PlayState* this) {
-    STOP_GAMESTATE(&this->state);
-    SET_NEXT_GAMESTATE(&this->state, ConsoleLogo_Init, sizeof(ConsoleLogoState));
+void do_reset_game(PlayState* play) {
+    gSaveContext.gameMode = GAMEMODE_OWL_SAVE;
+    play->transitionTrigger = TRANS_TRIGGER_START;
+    play->transitionType = TRANS_TYPE_FADE_BLACK;
+    play->nextEntrance = ENTRANCE(CUTSCENE, 0);
+    gSaveContext.save.cutsceneIndex = 0;
+    gSaveContext.sceneLayer = 0;
 }
 
 // @recomp Patched to add hooks for various added functionality.
