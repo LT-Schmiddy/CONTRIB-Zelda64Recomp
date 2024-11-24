@@ -40,23 +40,10 @@ void controls_play_update(PlayState* play) {
     gSaveContext.options.zTargetSetting = recomp_get_targeting_mode();
 }
 
-void do_reset_game(PlayState* play) {
-    gSaveContext.gameMode = GAMEMODE_OWL_SAVE;
-    play->transitionTrigger = TRANS_TRIGGER_START;
-    play->transitionType = TRANS_TYPE_FADE_BLACK;
-    play->nextEntrance = ENTRANCE(CUTSCENE, 0);
-    gSaveContext.save.cutsceneIndex = 0;
-    gSaveContext.sceneLayer = 0;
-}
-
 // @recomp Patched to add hooks for various added functionality.
 RECOMP_PATCH void Play_Main(GameState* thisx) {
     static Input* prevInput = NULL;
     PlayState* this = (PlayState*)thisx;
-
-    if (recomp_should_reset_game()) {
-        do_reset_game(this);
-    }
 
     // @recomp_event recomp_on_play_main(PlayState* play): Allow mods to execute code every frame.
     recomp_on_play_main(this);
