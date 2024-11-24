@@ -15,8 +15,10 @@
 #include "ultramodern/ultramodern.hpp"
 #include "ultramodern/config.hpp"
 
-namespace zelda64 {
-    bool should_game_reset;
+static std::atomic<uint8_t> should_game_reset = 0x00;
+
+void zelda64::enqueue_game_reset() {
+    should_game_reset.store(0x01);
 }
 
 extern "C" void recomp_update_inputs(uint8_t* rdram, recomp_context* ctx) {
@@ -174,8 +176,5 @@ extern "C" void recomp_set_right_analog_suppressed(uint8_t* rdram, recomp_contex
 
 
 extern "C" void recomp_should_reset_game(uint8_t* rdram, recomp_context* ctx) {
-    bool retVal = zelda64::should_game_reset;
-    zelda64::should_game_reset = false;
-
-    _return(ctx, retVal);
+    _return(ctx, should_game_reset.exchange(0x00));
 }
