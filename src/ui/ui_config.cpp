@@ -3,6 +3,7 @@
 #include "zelda_sound.h"
 #include "zelda_config.h"
 #include "zelda_debug.h"
+#include "zelda_game.h"
 #include "zelda_render.h"
 #include "promptfont.h"
 #include "ultramodern/config.hpp"
@@ -160,10 +161,6 @@ static bool msaa8x_supported = false;
 static bool sample_positions_supported = false;
 
 static bool cont_active = true;
-
-namespace zelda64 {
-	bool should_game_reset;
-}
 
 static recomp::InputDevice cur_device = recomp::InputDevice::Controller;
 

@@ -3,6 +3,7 @@
 #include "librecomp/recomp.h"
 #include "librecomp/overlays.hpp"
 #include "zelda_config.h"
+#include "zelda_game.h"
 #include "recomp_input.h"
 #include "recomp_ui.h"
 #include "zelda_render.h"
@@ -13,6 +14,10 @@
 #include "../patches/sound.h"
 #include "ultramodern/ultramodern.hpp"
 #include "ultramodern/config.hpp"
+
+namespace zelda64 {
+    bool should_game_reset;
+}
 
 extern "C" void recomp_update_inputs(uint8_t* rdram, recomp_context* ctx) {
     recomp::poll_inputs();

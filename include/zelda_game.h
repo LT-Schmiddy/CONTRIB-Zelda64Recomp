@@ -2,8 +2,11 @@
 #define __ZELDA_GAME_H__
 
 namespace zelda64 {
-    void quicksave_save();
-    void quicksave_load();
+    // Quicksaving is disabled for now:
+    //void quicksave_save();
+    //void quicksave_load();
+
+    extern bool should_game_reset;
 };
 
 #endif

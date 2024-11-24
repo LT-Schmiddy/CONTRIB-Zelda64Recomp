@@ -89,8 +89,6 @@ namespace zelda64 {
 
     void open_quit_game_prompt();
     void open_reset_game_prompt();
-
-    extern bool should_game_reset;
 };
 
 #endif
