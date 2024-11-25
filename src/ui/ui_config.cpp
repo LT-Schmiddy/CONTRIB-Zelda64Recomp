@@ -16,6 +16,7 @@ Rml::DataModelHandle general_model_handle;
 Rml::DataModelHandle controls_model_handle;
 Rml::DataModelHandle graphics_model_handle;
 Rml::DataModelHandle sound_options_model_handle;
+Rml::DataModelHandle reset_game_model_handle;
 
 recompui::PromptContext prompt_context;
 
@@ -529,6 +530,18 @@ void recompui::update_rml_display_refresh_rate() {
 
 DebugContext debug_context;
 
+struct ResetGameContext {
+	std::atomic<bool> reset_button_visibility;
+};
+ResetGameContext reset_game_context;
+
+void zelda64::set_reset_button_visibility(bool enabled) {
+	reset_game_context.reset_button_visibility.store(enabled);
+	if (reset_game_model_handle) {
+		reset_game_model_handle.DirtyVariable("reset_button_visibility");
+	}
+}
+
 class ConfigMenu : public recompui::MenuController {
 public:
 	ConfigMenu() {
@@ -1030,6 +1043,19 @@ public:
 		prompt_context.model_handle = constructor.GetModelHandle();
 	}
 
+	void make_game_reset_bindings(Rml::Context* context) {
+		Rml::DataModelConstructor constructor = context->CreateDataModel("game_reset_model");
+		if (!constructor) {
+			throw std::runtime_error("Failed to make RmlUi data model for the game reset button");
+		}
+
+		// Bind the debug mode enabled flag.
+
+		reset_game_model_handle = constructor.GetModelHandle();
+
+		bind_atomic(constructor, reset_game_model_handle, "reset_button_visibility", &reset_game_context.reset_button_visibility);
+	}
+
 	void make_bindings(Rml::Context* context) override {
 		// initially set cont state for ui help
 		recomp::config_menu_set_cont_or_kb(recompui::get_cont_active());
@@ -1040,6 +1066,7 @@ public:
 		make_sound_options_bindings(context);
 		make_debug_bindings(context);
 		make_prompt_bindings(context);
+		make_game_reset_bindings(context);
 	}
 };
 

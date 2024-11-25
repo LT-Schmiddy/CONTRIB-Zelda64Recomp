@@ -45,3 +45,4 @@ recomp_high_precision_fb_enabled = 0x8F0000A8;
 recomp_get_resolution_scale = 0x8F0000AC;
 recomp_get_analog_inverted_axes = 0x8F0000B0;
 recomp_should_reset_game = 0x8F0000B4;
+recomp_set_reset_button_visibility = 0x8F0000B8;

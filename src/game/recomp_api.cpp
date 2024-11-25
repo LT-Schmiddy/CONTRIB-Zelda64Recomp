@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 
 #include "librecomp/recomp.h"
 #include "librecomp/overlays.hpp"
@@ -177,4 +178,11 @@ extern "C" void recomp_set_right_analog_suppressed(uint8_t* rdram, recomp_contex
 
 extern "C" void recomp_should_reset_game(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, should_game_reset.exchange(0x00));
+}
+
+extern "C" void recomp_set_reset_button_visibility(uint8_t* rdram, recomp_context* ctx) {
+    uint8_t storeVal = _arg<0, uint8_t>(rdram, ctx);
+    std::cout << "Reset Button Visibility: " << std::to_string(storeVal) << "\n";
+    zelda64::set_reset_button_visibility((bool)storeVal);
+    
 }

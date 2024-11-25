@@ -26,6 +26,7 @@
 #include "overlays/kaleido_scope/ovl_kaleido_scope/z_kaleido_scope.h"
 #include "debug.h"
 
+
 extern Input D_801F6C18;
 
 RECOMP_DECLARE_EVENT(recomp_on_play_main(PlayState* play));
@@ -174,6 +175,7 @@ RECOMP_PATCH void Play_Init(GameState* thisx) {
 
     // @recomp_event recomp_on_play_init(PlayState* this): A new PlayState is being initialized.
     recomp_on_play_init(this);
+    recomp_set_reset_button_visibility(1);
 
     if ((gSaveContext.respawnFlag == -4) || (gSaveContext.respawnFlag == -0x63)) {
         if (CHECK_EVENTINF(EVENTINF_TRIGGER_DAYTELOP)) {
@@ -440,4 +442,75 @@ RECOMP_PATCH void Play_Init(GameState* thisx) {
 
     // @recomp_event recomp_after_play_init(PlayState* this): The new PlayState has finished initializing.
     recomp_after_play_init(this);
+}
+
+void Play_ClearTransition(PlayState* this);
+void Play_DestroyMotionBlur(void);
+void ZeldaArena_Cleanup();
+RECOMP_PATCH void Play_Destroy(GameState* thisx) {
+    PlayState* this = (PlayState*)thisx;
+    GraphicsContext* gfxCtx = this->state.gfxCtx;
+
+    recomp_set_reset_button_visibility(0);
+
+    if (sBombersNotebookOpen) {
+        MsgEvent_SendNullTask();
+        SysCfb_SetLoResMode();
+        gfxCtx->curFrameBuffer = SysCfb_GetFramebuffer(gfxCtx->framebufferIndex % 2);
+        gfxCtx->zbuffer = SysCfb_GetZBuffer();
+        gfxCtx->viMode = gActiveViMode;
+        gfxCtx->viConfigFeatures = gViConfigFeatures;
+        gfxCtx->xScale = gViConfigXScale;
+        gfxCtx->yScale = gViConfigYScale;
+        gfxCtx->updateViMode = true;
+        sBombersNotebookOpen = false;
+    }
+
+    BombersNotebook_Destroy(&sBombersNotebook);
+    this->state.gfxCtx->callback = NULL;
+    this->state.gfxCtx->callbackArg = NULL;
+    Play_DestroyMotionBlur();
+
+    if (R_PAUSE_BG_PRERENDER_STATE != PAUSE_BG_PRERENDER_OFF) {
+        PreRender_ApplyFiltersSlowlyDestroy(&this->pauseBgPreRender);
+        R_PAUSE_BG_PRERENDER_STATE = PAUSE_BG_PRERENDER_OFF;
+    }
+
+    R_PICTO_PHOTO_STATE = PICTO_PHOTO_STATE_OFF;
+    PreRender_Destroy(&this->pauseBgPreRender);
+    this->unk_18E58 = NULL;
+    this->pictoPhotoI8 = NULL;
+    this->unk_18E60 = NULL;
+    this->unk_18E64 = NULL;
+    this->unk_18E68 = NULL;
+    Effect_DestroyAll(this);
+    EffectSS_Clear(this);
+    CollisionCheck_DestroyContext(this, &this->colChkCtx);
+
+    if (gTransitionTileState == TRANS_TILE_READY) {
+        TransitionTile_Destroy(&sTransitionTile);
+        gTransitionTileState = TRANS_TILE_OFF;
+    }
+
+    if ((this->transitionMode == TRANS_MODE_INSTANCE_RUNNING) || D_801D0D54) {
+        this->transitionCtx.destroy(&this->transitionCtx.instanceData);
+        Play_ClearTransition(this);
+        this->transitionMode = TRANS_MODE_OFF;
+    }
+
+    ShrinkWindow_Destroy();
+    TransitionFade_Destroy(&this->unk_18E48);
+    VisMono_Destroy(&sPlayVisMono);
+    VisFbuf_Destroy(sPlayVisFbufInstance);
+    sPlayVisFbufInstance = NULL;
+
+    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_92_80)) {
+        Actor_CleanupContext(&this->actorCtx, this);
+    }
+    CLEAR_WEEKEVENTREG(WEEKEVENTREG_92_80);
+
+    Interface_Destroy(this);
+    KaleidoScopeCall_Destroy(this);
+    KaleidoManager_Destroy();
+    ZeldaArena_Cleanup();
 }
