@@ -4,7 +4,5 @@
 #include "patches.h"
 #include "patch_helpers.h"
 
-DECLARE_FUNC(bool, recomp_should_reset_game);
-
 
 #endif

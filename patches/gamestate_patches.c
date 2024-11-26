@@ -14,24 +14,11 @@
 #include "overlays/kaleido_scope/ovl_kaleido_scope/z_kaleido_scope.h"
 #include "debug.h"
 
-void do_reset_game(GameState* this) {
-    PlayState* play = (PlayState*)this;
-    gSaveContext.gameMode = GAMEMODE_OWL_SAVE;
-    play->transitionTrigger = TRANS_TRIGGER_START;
-    play->transitionType = TRANS_TYPE_FADE_BLACK;
-    play->nextEntrance = ENTRANCE(CUTSCENE, 0);
-    gSaveContext.save.cutsceneIndex = 0;
-    gSaveContext.sceneLayer = 0;
-}
 
 RECOMP_PATCH void GameState_Update(GameState* gameState) {
     GraphicsContext* gfxCtx = gameState->gfxCtx;
 
     GameState_SetFrameBuffer(gameState->gfxCtx);
-
-    if (recomp_should_reset_game()) {
-        do_reset_game(gameState);
-    }
 
     gameState->main(gameState);
 

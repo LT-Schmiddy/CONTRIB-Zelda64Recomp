@@ -33,6 +33,15 @@ RECOMP_DECLARE_EVENT(recomp_on_play_main(PlayState* play));
 RECOMP_DECLARE_EVENT(recomp_on_play_update(PlayState* play));
 RECOMP_DECLARE_EVENT(recomp_after_play_update(PlayState* play));
 
+void do_reset_game(PlayState* play) {
+    gSaveContext.gameMode = GAMEMODE_OWL_SAVE;
+    play->transitionTrigger = TRANS_TRIGGER_START;
+    play->transitionType = TRANS_TYPE_FADE_BLACK;
+    play->nextEntrance = ENTRANCE(CUTSCENE, 0);
+    gSaveContext.save.cutsceneIndex = 0;
+    gSaveContext.sceneLayer = 0;
+}
+
 void controls_play_update(PlayState* play) {
     gSaveContext.options.zTargetSetting = recomp_get_targeting_mode();
 }
@@ -41,6 +50,11 @@ void controls_play_update(PlayState* play) {
 RECOMP_PATCH void Play_Main(GameState* thisx) {
     static Input* prevInput = NULL;
     PlayState* this = (PlayState*)thisx;
+    
+    if (recomp_should_reset_game()) {
+        do_reset_game(this);
+    }
+
 
     // @recomp_event recomp_on_play_main(PlayState* play): Allow mods to execute code every frame.
     recomp_on_play_main(this);
@@ -176,6 +190,7 @@ RECOMP_PATCH void Play_Init(GameState* thisx) {
     // @recomp_event recomp_on_play_init(PlayState* this): A new PlayState is being initialized.
     recomp_on_play_init(this);
     recomp_set_reset_button_visibility(1);
+
 
     if ((gSaveContext.respawnFlag == -4) || (gSaveContext.respawnFlag == -0x63)) {
         if (CHECK_EVENTINF(EVENTINF_TRIGGER_DAYTELOP)) {
@@ -444,9 +459,11 @@ RECOMP_PATCH void Play_Init(GameState* thisx) {
     recomp_after_play_init(this);
 }
 
+
 void Play_ClearTransition(PlayState* this);
 void Play_DestroyMotionBlur(void);
 void ZeldaArena_Cleanup();
+
 RECOMP_PATCH void Play_Destroy(GameState* thisx) {
     PlayState* this = (PlayState*)thisx;
     GraphicsContext* gfxCtx = this->state.gfxCtx;

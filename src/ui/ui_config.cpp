@@ -1,3 +1,4 @@
+#include <iostream>
 #include "recomp_ui.h"
 #include "recomp_input.h"
 #include "zelda_sound.h"
@@ -1049,10 +1050,11 @@ public:
 			throw std::runtime_error("Failed to make RmlUi data model for the game reset button");
 		}
 
-		// Bind the debug mode enabled flag.
-
+		// Bind the reset button visibility flag.
 		reset_game_model_handle = constructor.GetModelHandle();
 
+		// Ensuring the flag is set to false on startup.
+		reset_game_context.reset_button_visibility.store(false);
 		bind_atomic(constructor, reset_game_model_handle, "reset_button_visibility", &reset_game_context.reset_button_visibility);
 	}
 

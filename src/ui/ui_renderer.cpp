@@ -2,7 +2,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <iostream>
 #include <fstream>
 #include <filesystem>
 #ifdef _WIN32
@@ -16,7 +15,6 @@
 #include "recomp_input.h"
 #include "librecomp/game.hpp"
 #include "zelda_config.h"
-#include "zelda_game.h"
 #include "ui_rml_hacks.hpp"
 
 #include "concurrentqueue.h"
