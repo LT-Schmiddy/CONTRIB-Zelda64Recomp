@@ -164,11 +164,13 @@ extern u8 D_80784600[];
 // Non-relocatable references to the original addresses of these game state functions.
 void DayTelop_Init_NORELOCATE(GameState*);
 void TitleSetup_Init_NORELOCATE(GameState*);
+void TitleSetup_Init(GameState*);
 
 RECOMP_DECLARE_EVENT(recomp_on_play_init(PlayState* this));
 RECOMP_DECLARE_EVENT(recomp_after_play_init(PlayState* this));
 
 bool allow_no_ocarina_tf = false;
+bool recomp_in_title_sequence = false;
 
 // @recomp_export void recomp_set_allow_no_ocarina_tf(bool new_val): Set whether to force Termina Field to load normally even if Link has no ocarina.
 RECOMP_EXPORT void recomp_set_allow_no_ocarina_tf(bool new_val) {
@@ -189,7 +191,10 @@ RECOMP_PATCH void Play_Init(GameState* thisx) {
 
     // @recomp_event recomp_on_play_init(PlayState* this): A new PlayState is being initialized.
     recomp_on_play_init(this);
-    recomp_set_reset_button_visibility(1);
+    if (!recomp_in_title_sequence) {
+        recomp_set_reset_button_visibility(1);
+    }
+
 
 
     if ((gSaveContext.respawnFlag == -4) || (gSaveContext.respawnFlag == -0x63)) {

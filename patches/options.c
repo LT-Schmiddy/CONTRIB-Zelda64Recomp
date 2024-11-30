@@ -69,10 +69,15 @@ RECOMP_PATCH void FileSelect_RotateToOptions(GameState* thisx) {
     recomp_exit();
 }
 
+extern int recomp_in_title_sequence;
+
 RECOMP_PATCH void FileSelect_Init(GameState* thisx) {
     s32 pad;
     FileSelectState* this = (FileSelectState*)thisx;
     size_t size;
+
+    recomp_in_title_sequence = false;
+    recomp_printf("FileSelect_Init\n");
 
     GameState_SetFramerateDivisor(&this->state, 1);
     Matrix_Init(&this->state);
