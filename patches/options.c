@@ -3,6 +3,8 @@
 #include "z64shrink_window.h"
 #include "overlays/gamestates/ovl_file_choose/z_file_select.h"
 
+#include "play_patches.h"
+
 #define FS_BTN_CONFIRM_REWIND 2
 
 INCBIN(rewind_button_texture, "rewind.ia16.bin");
@@ -69,14 +71,12 @@ RECOMP_PATCH void FileSelect_RotateToOptions(GameState* thisx) {
     recomp_exit();
 }
 
-extern int recomp_in_title_sequence;
-
 RECOMP_PATCH void FileSelect_Init(GameState* thisx) {
     s32 pad;
     FileSelectState* this = (FileSelectState*)thisx;
     size_t size;
 
-    recomp_in_title_sequence = false;
+    recomp_set_in_title_sequence(false);
     recomp_printf("FileSelect_Init\n");
 
     GameState_SetFramerateDivisor(&this->state, 1);

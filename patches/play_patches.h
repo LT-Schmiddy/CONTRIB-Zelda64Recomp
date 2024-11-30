@@ -12,6 +12,8 @@ void analog_cam_post_play_update(PlayState* play);
 void matrix_play_update(PlayState* play);
 void autosave_post_play_update(PlayState* play);
 
+void recomp_set_in_title_sequence(bool val);
+
 DECLARE_FUNC(void, recomp_set_reset_button_visibility, u8 visibility);
 DECLARE_FUNC(bool, recomp_should_reset_game);
 

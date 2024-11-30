@@ -1,20 +1,18 @@
 #include "patches.h"
 #include "patch_helpers.h"
 
+#include "play_patches.h"
+
 #include "global.h"
 #include "z64save.h"
 #include "z64shrink_window.h"
 #include "z64view.h"
 #include "regs.h"
 
-DECLARE_FUNC(void, recomp_set_reset_button_visibility, u8 visibility);
-
 typedef struct {
     /* 0x000 */ GameState state;
     /* 0x0A8 */ View view;
 } TitleSetupState; // size = 0x210
-
-extern int recomp_in_title_sequence;
 
 void TitleSetup_Init(GameState* thisx);
 void TitleSetup_Main(GameState* thisx);
@@ -36,6 +34,5 @@ RECOMP_PATCH void TitleSetup_Init(GameState* thisx) {
     gSaveContext.respawn[RESPAWN_MODE_DEKU].entrance = 0xFF;
     gSaveContext.respawn[RESPAWN_MODE_HUMAN].entrance = 0xFF;
 
-    recomp_in_title_sequence = true;
-    recomp_printf("TitleSetup_Init\n");
+    recomp_set_in_title_sequence(true);
 }

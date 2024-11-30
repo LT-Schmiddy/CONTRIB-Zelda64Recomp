@@ -170,7 +170,11 @@ RECOMP_DECLARE_EVENT(recomp_on_play_init(PlayState* this));
 RECOMP_DECLARE_EVENT(recomp_after_play_init(PlayState* this));
 
 bool allow_no_ocarina_tf = false;
-bool recomp_in_title_sequence = false;
+static bool recomp_in_title_sequence = false;
+
+void recomp_set_in_title_sequence(bool val) {
+    recomp_in_title_sequence = val;
+}
 
 // @recomp_export void recomp_set_allow_no_ocarina_tf(bool new_val): Set whether to force Termina Field to load normally even if Link has no ocarina.
 RECOMP_EXPORT void recomp_set_allow_no_ocarina_tf(bool new_val) {
