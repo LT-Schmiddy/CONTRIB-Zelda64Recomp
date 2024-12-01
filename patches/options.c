@@ -77,7 +77,6 @@ RECOMP_PATCH void FileSelect_Init(GameState* thisx) {
     size_t size;
 
     recomp_set_in_title_sequence(false);
-    recomp_printf("FileSelect_Init\n");
 
     GameState_SetFramerateDivisor(&this->state, 1);
     Matrix_Init(&this->state);
