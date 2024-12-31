@@ -182,5 +182,4 @@ extern "C" void recomp_should_reset_game(uint8_t* rdram, recomp_context* ctx) {
 extern "C" void recomp_set_reset_button_visibility(uint8_t* rdram, recomp_context* ctx) {
     uint8_t storeVal = _arg<0, uint8_t>(rdram, ctx);
     zelda64::set_reset_button_visibility((bool)storeVal);
-    
 }

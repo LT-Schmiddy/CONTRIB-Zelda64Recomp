@@ -51,6 +51,7 @@ RECOMP_PATCH void Play_Main(GameState* thisx) {
     static Input* prevInput = NULL;
     PlayState* this = (PlayState*)thisx;
     
+    // @recomp If the reset game button was pressed, we'll handle that now.
     if (recomp_should_reset_game()) {
         do_reset_game(this);
     }
@@ -195,12 +196,12 @@ RECOMP_PATCH void Play_Init(GameState* thisx) {
 
     // @recomp_event recomp_on_play_init(PlayState* this): A new PlayState is being initialized.
     recomp_on_play_init(this);
+
+    // @recomp make the game reset button visible ONLY if we're not running the titlescreen sequence.
     if (!recomp_in_title_sequence) {
         recomp_set_reset_button_visibility(1);
     }
-
-
-
+    
     if ((gSaveContext.respawnFlag == -4) || (gSaveContext.respawnFlag == -0x63)) {
         if (CHECK_EVENTINF(EVENTINF_TRIGGER_DAYTELOP)) {
             CLEAR_EVENTINF(EVENTINF_TRIGGER_DAYTELOP);
