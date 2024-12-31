@@ -1020,7 +1020,7 @@ struct UIContext {
             current_document->GetElementsByTagName(tabs, "tab");
             for (const auto& tab : tabs) {
                 tab->SetProperty("nav-down", "#" + id);
-            }         
+            }
         }
         
         void update_prompt_loop(void) {

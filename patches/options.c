@@ -76,6 +76,8 @@ RECOMP_PATCH void FileSelect_Init(GameState* thisx) {
     FileSelectState* this = (FileSelectState*)thisx;
     size_t size;
 
+    // @recomp indicates that the titlescreen has ended.
+    // The game reset button will now be controlled exclusively by the PlayState
     recomp_set_in_title_sequence(false);
 
     GameState_SetFramerateDivisor(&this->state, 1);

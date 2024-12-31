@@ -77,7 +77,7 @@
 							class="icon-button"
 							onclick="open_reset_game_prompt"
 							id="config__reset_game-button"
-              data-if="reset_button_visibility"
+							data-if="reset_button_visibility"
 						> 
 							<svg src="icons/Reset.svg" />
 						</button>

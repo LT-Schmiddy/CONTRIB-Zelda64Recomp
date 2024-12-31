@@ -34,5 +34,7 @@ RECOMP_PATCH void TitleSetup_Init(GameState* thisx) {
     gSaveContext.respawn[RESPAWN_MODE_DEKU].entrance = 0xFF;
     gSaveContext.respawn[RESPAWN_MODE_HUMAN].entrance = 0xFF;
 
+    // @recomp the game reset button shouldn't be shown during the title sequence, 
+    // despite the fact that a PlayState is initialized.
     recomp_set_in_title_sequence(true);
 }

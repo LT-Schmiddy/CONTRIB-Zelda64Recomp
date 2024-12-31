@@ -477,6 +477,7 @@ RECOMP_PATCH void Play_Destroy(GameState* thisx) {
     PlayState* this = (PlayState*)thisx;
     GraphicsContext* gfxCtx = this->state.gfxCtx;
 
+    // @recomp hide the reset button when the PlayState is destroyed.
     recomp_set_reset_button_visibility(0);
 
     if (sBombersNotebookOpen) {
