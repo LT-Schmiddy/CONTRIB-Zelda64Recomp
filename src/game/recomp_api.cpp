@@ -1,7 +1,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "librecomp/recomp.h"
+#include "recomp.h"
 #include "librecomp/overlays.hpp"
 #include "zelda_config.h"
 #include "zelda_game.h"
